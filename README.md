@@ -129,8 +129,8 @@ sudo service asterisk restart
 ### Step 9 — Verify
 ```bash
 lsmod | grep -E "dahdi|ax1600"
-asterisk -rx "dahdi show channels"
-asterisk -rx "dahdi show status"
+sudo -u asterisk asterisk -rx "dahdi show channels"
+sudo -u asterisk asterisk -rx "dahdi show status"
 ```
 
 ---
@@ -204,7 +204,7 @@ atcom-ax1600p-dahdi/
 - Original DAHDI driver source: ATCOM (www.atcom.cn)
 - Kernel 3.10 compatibility patches: Godfrey Padua
 - Tested on: Issabel 4, Asterisk 16.7.0, Kernel 3.10.0-1062.el7.x86_64
-
+- Tested on: Issabel 4, Asterisk 16.7.0, Kernel 3.10.0-1160.119.1.el7.x86_64
 ---
 
 ## License
