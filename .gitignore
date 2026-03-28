@@ -1,0 +1,23 @@
+# Compiled kernel objects
+*.o
+*.ko
+*.mod.c
+*.mod
+*.cmd
+*.symvers
+*.order
+
+# Build directories
+.tmp_versions/
+Module.symvers
+modules.order
+
+# Archives - source tarball should NOT be in repo
+*.gz
+*.zip
+*.tar
+
+# Editor/OS junk
+.DS_Store
+*~
+*.swp
