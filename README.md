@@ -148,66 +148,67 @@ crc_ccitt           12707  1 dahdi
       2  from-pstn  default             Yes
     ...
      16  from-pstn  de
-
+```
 
 ---
 
 ## Troubleshooting
 
-**"Inv
-
-```
-
-find /lib/module
-
+**"Invalid argument" when loading ax1600p**
+Old DAHDI module conflict. Run:
+```bash
+rmmod dahdi
+find /lib/modules/$(uname -r)/extra -name "dahdi*.ko.xz" -delete
+depmod -a
 modprobe dahdi && modprobe ax1600p
 ```
 
 **"dahdi_hardware" shows nothing**
-N
+Normal for Tiger Jet cards. Use `dahdi_scan` instead.
 
 **RED alarms on channels**
-Normal — RED alarm means no active PSTN lin
+Normal — RED alarm means no active PSTN line connected on that port.
 
 **Build fails after kernel update**
-Reco
-
+Recompile: run `make all && make install` again from the repo directory.
+The `kernel-devel` package must match your running kernel exactly.
 
 ---
 
 ## Repository Structure
 ```
 atcom-ax1600p-dahdi/
-├── linux/driver
+├── linux/drivers/dahdi/     # Patched DAHDI kernel driver source
 │   ├── ax1600p.c            # Main AX1600P driver (patched)
-│  
+│   ├── dahdi-base.c         # Core DAHDI base (patched)
 │   └── Kbuild               # Build config (ethmf removed)
-├── 
+├── tools/                   # DAHDI userspace tools
 ├── Makefile                 # Top-level build file
+└── README.md                # This file
+```
 
-
-
---
+---
 
 ## Branch Plan
 
-| Bran
-
-| `main`    | Issabel 4 / CentOS 7 | 3.10 | ✅ Working 
-| `issabel5`| Issabel 5 / CentOS 8 | 4.18 | 🔜 Planned
-| `issabel6`| Issabel 6         | TBD    | 🔜 Planned 
+| Branch    | Target OS         | Kernel | Status      |
+|-----------|-------------------|--------|-------------|
+| `main`    | Issabel 4 / CentOS 7 | 3.10 | ✅ Working |
+| `issabel5`| Issabel 5 / CentOS 8 | 4.18 | 🔜 Planned  |
+| `issabel6`| Issabel 6         | TBD    | 🔜 Planned  |
 
 ---
 
 ## Credits
 
-- Original DAHDI driver source: ATCOM 
-
-- Tested on: Issabel 4, Asterisk 16.7.0, Kernel
+- Original DAHDI driver source: ATCOM (www.atcom.cn)
+- Kernel 3.10 compatibility patches: Godfrey Padua
+- Tested on: Issabel 4, Asterisk 16.7.0, Kernel 3.10.0-1062.el7.x86_64
 
 ---
 
-#
+## License
 
-Patches and documentatio
-community u
+Patches and documentation in this repository are provided freely for
+community use. The DAHDI source code is licensed under GPL v2.
+EOF
