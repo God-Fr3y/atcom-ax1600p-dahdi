@@ -7131,8 +7131,11 @@ static int _dahdi_unassign_span(struct dahdi_span *span)
 	if (debug & DEBUG_MAIN)
 		module_printk(KERN_NOTICE, "Unassigning Span '%s' with %d channels\n", span->name, span->channels);
 #ifdef CONFIG_PROC_FS
-	if (span->proc_entry)
-		remove_proc_entry(span->proc_entry->name, root_proc_entry);
+	if (span->proc_entry) {
+		char tmpname[17];
+		snprintf(tmpname, sizeof(tmpname), "%d", span->spanno);
+		remove_proc_entry(tmpname, root_proc_entry);
+	}
 #endif /* CONFIG_PROC_FS */
 
 	span_sysfs_remove(span);
