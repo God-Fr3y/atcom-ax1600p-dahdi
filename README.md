@@ -202,7 +202,7 @@ atcom-ax1600p-dahdi/
 ## Credits
 
 - Original DAHDI driver source: ATCOM (www.atcom.cn)
-- Kernel 3.10 compatibility patches: Godfrey Padua
+- Claude Code AI
 - Tested on: Issabel 4, Asterisk 16.7.0, Kernel 3.10.0-1062.el7.x86_64
 - Tested on: Issabel 4, Asterisk 16.7.0, Kernel 3.10.0-1160.119.1.el7.x86_64
 ---
