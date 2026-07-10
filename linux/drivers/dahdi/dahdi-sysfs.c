@@ -268,13 +268,28 @@ static struct device_attribute span_dev_attrs[] = {
 	__ATTR_RO(is_sync_master),
 	__ATTR_RO(basechan),
 	__ATTR_RO(channels),
-	__ATTR_NULL,
 };
-
-static struct driver_attribute dahdi_attrs[] = {
-	__ATTR_NULL,
+static struct attribute *span_dev_attrs_list[] = {
+	&span_dev_attrs[0].attr,
+	&span_dev_attrs[1].attr,
+	&span_dev_attrs[2].attr,
+	&span_dev_attrs[3].attr,
+	&span_dev_attrs[4].attr,
+	&span_dev_attrs[5].attr,
+	&span_dev_attrs[6].attr,
+	&span_dev_attrs[7].attr,
+	&span_dev_attrs[8].attr,
+	&span_dev_attrs[9].attr,
+	&span_dev_attrs[10].attr,
+	NULL,
 };
-
+static struct attribute_group span_dev_attr_group = {
+	.attrs = span_dev_attrs_list,
+};
+static const struct attribute_group *span_dev_groups[] = {
+	&span_dev_attr_group,
+	NULL,
+};
 static struct bus_type spans_bus_type = {
 	.name           = "dahdi_spans",
 	.match          = span_match,
@@ -283,8 +298,7 @@ static struct bus_type spans_bus_type = {
 #else
 	.uevent         = span_uevent,
 #endif
-	.dev_attrs	= span_dev_attrs,
-	.drv_attrs	= dahdi_attrs,
+	.dev_groups	= span_dev_groups,
 };
 
 static int span_probe(struct device *dev)
@@ -717,12 +731,28 @@ static struct device_attribute dahdi_device_attrs[] = {
 	__ATTR(unassign_span, S_IWUSR, NULL, dahdi_device_unassign_span),
 	__ATTR(spantype, S_IWUSR | S_IRUGO, dahdi_spantype_show,
 	       dahdi_spantype_store),
-	__ATTR_NULL,
 };
-
+static struct attribute *dahdi_device_attrs_list[] = {
+	&dahdi_device_attrs[0].attr,
+	&dahdi_device_attrs[1].attr,
+	&dahdi_device_attrs[2].attr,
+	&dahdi_device_attrs[3].attr,
+	&dahdi_device_attrs[4].attr,
+	&dahdi_device_attrs[5].attr,
+	&dahdi_device_attrs[6].attr,
+	&dahdi_device_attrs[7].attr,
+	NULL,
+};
+static struct attribute_group dahdi_device_attr_group = {
+	.attrs = dahdi_device_attrs_list,
+};
+static const struct attribute_group *dahdi_device_groups[] = {
+	&dahdi_device_attr_group,
+	NULL,
+};
 static struct bus_type dahdi_device_bus = {
 	.name = "dahdi_devices",
-	.dev_attrs = dahdi_device_attrs,
+	.dev_groups = dahdi_device_groups,
 };
 
 void dahdi_sysfs_exit(void)

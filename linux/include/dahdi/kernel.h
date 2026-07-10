@@ -74,7 +74,9 @@
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 25)
 #ifdef CONFIG_PCI
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,12,0)
 #include <linux/pci-aspm.h>
+#endif
 #endif
 #endif
 
@@ -85,7 +87,11 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,18)
 #define DAHDI_IRQ_SHARED IRQF_SHARED
 #define DAHDI_IRQ_DISABLED IRQF_DISABLED
-#define DAHDI_IRQ_SHARED_DISABLED IRQF_SHARED | IRQF_DISABLED
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,1,0)
+#define DAHDI_IRQ_SHARED_DISABLED (IRQF_SHARED | IRQF_DISABLED)
+#else
+#define DAHDI_IRQ_SHARED_DISABLED (IRQF_SHARED)
+#endif
 #else
 #define DAHDI_IRQ_SHARED SA_SHIRQ
 #define DAHDI_IRQ_DISABLED SA_INTERRUPT
@@ -1561,9 +1567,11 @@ struct mutex {
 				chan_printk(DEBUG, "-" #bits, chan, \
 					"%s: " fmt, __func__, ## __VA_ARGS__)))
 #define dahdi_dev_dbg(bits, dev, fmt, ...)         \
-			((void)((debug & (DAHDI_DBG_ ## bits)) && \
-			dev_printk(KERN_DEBUG, dev, \
-			"DBG-%s(%s): " fmt, #bits, __func__, ## __VA_ARGS__)))
+			do { \
+				if (debug & (DAHDI_DBG_ ## bits)) \
+					dev_printk(KERN_DEBUG, dev, \
+						"DBG-%s(%s): " fmt, #bits, __func__, ## __VA_ARGS__); \
+			} while (0)
 #endif /* DAHDI_PRINK_MACROS_USE_debug */
 
 #endif /* _DAHDI_KERNEL_H */

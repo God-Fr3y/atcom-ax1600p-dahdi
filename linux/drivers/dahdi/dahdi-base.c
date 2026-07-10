@@ -103,7 +103,7 @@
 #define chan_to_netdev(h) ((h)->hdlcnetdev->netdev)
 
 /* macro-oni for determining a unit (channel) number */
-#define	UNIT(file) MINOR(file->f_dentry->d_inode->i_rdev)
+#define	UNIT(file) MINOR(file_inode(file)->i_rdev)
 
 EXPORT_SYMBOL(dahdi_transcode_fops);
 EXPORT_SYMBOL(dahdi_init_tone_state);
@@ -9623,7 +9623,7 @@ static inline unsigned long msecs_processed(const struct core_timer *const ct)
 	return atomic_read(&ct->count) * DAHDI_MSECS_PER_CHUNK;
 }
 
-static void coretimer_func(unsigned long param)
+static void coretimer_func(struct timer_list *unused)
 {
 	unsigned long flags;
 	unsigned long ms_since_start;
@@ -9696,8 +9696,7 @@ static void coretimer_func(unsigned long param)
 
 static void coretimer_init(void)
 {
-	init_timer(&core_timer.timer);
-	core_timer.timer.function = coretimer_func;
+	timer_setup(&core_timer.timer, coretimer_func, 0);
 	core_timer.start_interval = current_kernel_time();
 	atomic_set(&core_timer.count, 0);
 	atomic_set(&core_timer.shutdown, 0);

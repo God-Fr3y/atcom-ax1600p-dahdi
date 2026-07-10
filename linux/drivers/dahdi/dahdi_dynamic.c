@@ -455,7 +455,7 @@ static int _destroy_dynamic(struct dahdi_dynamic_span *dds)
 
 	/* We shouldn't have more than the two references at this point.  If
 	 * we do, there are probably channels that are still opened. */
-	if (atomic_read(&d->kref.refcount) > 2) {
+	if (kref_read(&d->kref) > 2) {
 		dynamic_put(d);
 		return -EBUSY;
 	}
@@ -801,7 +801,7 @@ EXPORT_SYMBOL(dahdi_dynamic_unregister_driver);
 
 static struct timer_list alarmcheck;
 
-static void check_for_red_alarm(unsigned long ignored)
+static void check_for_red_alarm(struct timer_list *unused)
 {
 	int newalarm;
 	int alarmchanged = 0;
@@ -837,10 +837,7 @@ static const struct dahdi_dynamic_ops dahdi_dynamic_ops = {
 static int dahdi_dynamic_init(void)
 {
 	/* Start process to check for RED ALARM */
-	init_timer(&alarmcheck);
-	alarmcheck.expires = 0;
-	alarmcheck.data = 0;
-	alarmcheck.function = check_for_red_alarm;
+	timer_setup(&alarmcheck, check_for_red_alarm, 0);
 	/* Check once per second */
 	mod_timer(&alarmcheck, jiffies + 1 * HZ);
 #ifdef ENABLE_TASKLETS
