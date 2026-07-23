@@ -45,33 +45,13 @@ lspci -nn | grep -i tiger
 | DAHDI        | 2.11.1 (with ax1600p built-in)              |
 | Echo Cancel  | MG2                                         |
 
----
-
-## Patches Applied
-
-The following changes were made to integrate ax1600p into DAHDI 2.11.1:
-
-| # | File              | Change                                                                 |
-|---|-------------------|-------------------------------------------------------------------------|
-| 1 | `ax1600p.c`       | `DAHDI_IRQ_SHARED` → `IRQF_SHARED` (removed in kernel 4.1)             |
-| 2 | `ax1600p.c`       | Added `wc->span.spantype = SPANTYPE_ANALOG_MIXED` (required by DAHDI 2.11.1) |
-| 3 | `Kbuild`          | Added `ax1600p.o` module entry                                          |
-| 4 | `kernel.h`        | Removed `#include <linux/pci-aspm.h>` (merged into `pci.h` in kernel 4.18) |
-| 5 | `kernel.h`        | Removed `IRQF_DISABLED` references (removed in kernel 4.1)              |
-| 6 | `dahdi-base.c`    | `f_dentry` → `f_path.dentry` (removed in kernel 3.19)                   |
-| 7 | `dahdi-base.c`    | `init_timer` → `timer_setup` (API change in kernel 4.15)                |
-| 8 | `dahdi-sysfs.c`   | `dev_attrs` → `dev_groups` / `attribute_group`                          |
-| 9 | `dahdi_dynamic.c` | `init_timer` → `timer_setup`                                            |
-| 10| `Kbuild`          | Disabled `wctc4xxp`, `wcte12xp`, `pciradio` (not needed for AX1600P)    |
-
----
 
 ## Installation
 
 ### Step 1 — Install build dependencies
 
 ```bash
-sudo dnf install -y git gcc make kernel-devel-$(uname -r)
+sudo yum update && sudo dnf install -y git gcc make kernel-devel-$(uname -r)
 ```
 
 ### Step 2 — Clone and checkout the Issabel 5 branch
@@ -113,7 +93,7 @@ EOF
 sudo modprobe dahdi
 sudo modprobe dahdi_echocan_mg2
 sudo modprobe ax1600p
-sleep 1
+sleep 5
 
 sudo dahdi_genconf
 sudo sed -i 's/echocanceller=oslec/echocanceller=mg2/g' /etc/dahdi/system.conf
