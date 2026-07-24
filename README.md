@@ -87,7 +87,13 @@ SUBSYSTEM=="dahdi", OWNER="asterisk", GROUP="asterisk", MODE="0660"
 EOF
 ```
 
-### Step 6 — Load modules and configure DAHDI
+### Step 6 — Load modules and create a persistent DAHDI configure service
+
+Loading modules manually and running `dahdi_genconf`/`dahdi_cfg` by hand
+works for the current session, but **does not survive a reboot** — on
+Issabel 5 the DAHDI kernel modules and Asterisk's own systemd unit start in
+an unpredictable order, so channels may come up empty or Asterisk may
+crash-loop after a restart. A dedicated systemd unit fixes this permanently.
 
 ```bash
 sudo tee /etc/modules-load.d/dahdi.conf << 'EOF'
@@ -95,28 +101,84 @@ dahdi
 dahdi_echocan_mg2
 ax1600p
 EOF
-
-sudo modprobe dahdi
-sudo modprobe dahdi_echocan_mg2
-sudo modprobe ax1600p
-sleep 5
-
-sudo dahdi_genconf
-sudo sed -i 's/echocanceller=oslec/echocanceller=mg2/g' /etc/dahdi/system.conf
-sudo dahdi_cfg -vvv
-sudo dahdi_genconf
-sudo chown -R asterisk:asterisk /dev/dahdi
 ```
 
-### Step 7 — Start Asterisk and verify
+Create `/etc/systemd/system/dahdi-cfg.service`:
+
+```bash
+sudo tee /etc/systemd/system/dahdi-cfg.service << 'EOF'
+[Unit]
+Description=DAHDI configure
+After=systemd-modules-load.service network.target
+Requires=systemd-modules-load.service
+Before=asterisk.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 5
+ExecStartPre=/sbin/dahdi_genconf
+ExecStartPre=/bin/sed -i 's/echocanceller=oslec/echocanceller=mg2/g' /etc/dahdi/system.conf
+ExecStart=/sbin/dahdi_cfg
+ExecStartPost=/bin/chown -R asterisk:asterisk /dev/dahdi
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable dahdi-cfg.service
+```
+
+The `sleep 5` gives the Tiger Jet chipset time to fully enumerate all spans
+over PCI before `dahdi_genconf` runs — without it, `system.conf` can be
+generated empty on a cold boot. `Before=asterisk.service` guarantees DAHDI
+is fully configured before Asterisk starts, with no need for a
+`Requires=` in the other direction (a hard `Requires=` dependency on
+`dahdi-cfg.service` from Asterisk's own unit can cause Asterisk to refuse
+to start at all if this service is ever delayed — avoid adding one).
+
+### Step 7 — Fix Asterisk's systemd unit and verify
+
+Issabel 5's default `asterisk.service` can ship with (or accumulate through
+prior manual edits) a broken `ExecStart` path that fails silently on every
+boot with `status=1/FAILURE` in a restart loop. Check it first:
+
+```bash
+systemctl cat asterisk
+```
+
+If `ExecStart`/`ExecReload` don't read exactly as below, fix them:
+
+```bash
+sudo systemctl edit --full asterisk.service
+```
+
+```ini
+ExecStart=/usr/sbin/asterisk -U asterisk -G asterisk -mqf -C /etc/asterisk/asterisk.conf
+ExecReload=/usr/sbin/asterisk -rx 'core reload'
+```
+
+Then enable everything and reboot to confirm it all comes up clean:
 
 ```bash
 echo '#include dahdi-channels.conf' | sudo tee -a /etc/asterisk/chan_dahdi.conf
-sudo systemctl restart asterisk
-sudo asterisk -rx "dahdi show channels"
+sudo systemctl daemon-reload
+sudo systemctl enable asterisk
+sudo reboot
 ```
 
----
+After reboot, verify:
+
+```bash
+sudo asterisk -rx "dahdi show channels"
+sudo asterisk -rx "core show channels"
+```
+
+You should see all physical FXO channels listed as `In Service` under
+`from-pstn`, and Asterisk running without restarts (`systemctl status
+asterisk` should show a single `active (running)` start, not a rising
+`restart counter`).
 
 ## Expected Output After Successful Install
 
