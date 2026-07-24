@@ -112,7 +112,7 @@ sudo chown -R asterisk:asterisk /dev/dahdi
 
 ```bash
 echo '#include dahdi-channels.conf' | sudo tee -a /etc/asterisk/chan_dahdi.conf
-sudo systemctl start asterisk
+sudo systemctl restart asterisk
 sudo asterisk -rx "dahdi show channels"
 ```
 
