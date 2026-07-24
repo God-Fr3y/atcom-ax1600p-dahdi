@@ -90,6 +90,12 @@ EOF
 ### Step 6 — Load modules and configure DAHDI
 
 ```bash
+sudo tee /etc/modules-load.d/dahdi.conf << 'EOF'
+dahdi
+dahdi_echocan_mg2
+ax1600p
+EOF
+
 sudo modprobe dahdi
 sudo modprobe dahdi_echocan_mg2
 sudo modprobe ax1600p
@@ -105,6 +111,7 @@ sudo chown -R asterisk:asterisk /dev/dahdi
 ### Step 7 — Start Asterisk and verify
 
 ```bash
+echo '#include dahdi-channels.conf' | sudo tee -a /etc/asterisk/chan_dahdi.conf
 sudo systemctl start asterisk
 sudo asterisk -rx "dahdi show channels"
 ```
